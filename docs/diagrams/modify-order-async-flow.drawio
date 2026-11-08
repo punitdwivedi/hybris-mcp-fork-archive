@@ -1,0 +1,276 @@
+<mxfile host="app.diagrams.net" modified="2026-07-01T00:00:00.000Z" agent="hybris-mcp" version="24.0.0" type="device">
+  <diagram id="modify-order-async-flow" name="Modify Order Async Flow">
+    <mxGraphModel dx="1420" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="2400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="Modify Order – Async Enhanced Flow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="480" y="20" width="640" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ========== PHASE 1: CREATE MODIFY CART ========== -->
+        <mxCell id="phase1-label" value="Phase 1 — Create Modify Cart" style="text;html=1;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;fontStyle=1;fontSize=12;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="70" width="1440" height="28" as="geometry" />
+        </mxCell>
+
+        <mxCell id="start" value="Start&#xa;User initiates Modify Order" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="700" y="110" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="create-req" value="API: Create modify cart&#xa;(orderCode)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="680" y="200" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lock-check" value="Order already&#xa;modify-locked?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="700" y="280" width="200" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lock-reject" value="Reject 409&#xa;Return lock owner userId&#xa;+ active modifyCartId" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="295" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s4-get" value="Call S/4&#xa;Get Sales Order API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="680" y="420" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="persist-refresh" value="Persist S/4 response&#xa;(refresh order snapshot + ETag)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="660" y="500" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="create-cart" value="Create modify cart&#xa;from refreshed order" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="680" y="580" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="set-lock" value="Set order lock metadata&#xa;isModifyLocked=true&#xa;modifyLockedByUserId, modifyCartId&#xa;modifyLockStartedAt, currentEtag" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="640" y="660" width="320" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="return-cart" value="Return modify cart to UI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="680" y="770" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ========== PHASE 2: MODIFY CART ========== -->
+        <mxCell id="phase2-label" value="Phase 2 — Modify Cart" style="text;html=1;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;fontStyle=1;fontSize=12;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="850" width="1440" height="28" as="geometry" />
+        </mxCell>
+
+        <mxCell id="modify-cart" value="User edits cart via&#xa;Cart Header / Cart Entries APIs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="640" y="890" width="320" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Abandon branch -->
+        <mxCell id="abandon-note" value="Optional: User abandons cart&#xa;(no submit)" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="80" y="880" width="200" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cron-scan" value="Cron: scan locks older than&#xa;modify.order.lock.abandon.minutes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="980" width="280" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cron-cleanup" value="Release lock (ABANDONED_TIMEOUT)&#xa;Delete modify cart&#xa;Idempotent + grace window" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1070" width="280" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="admin-cleanup" value="Admin API: force unlock + delete cart&#xa;(ABANDONED_ADMIN_RELEASE, audit log)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1170" width="280" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ETL parallel -->
+        <mxCell id="etl-note" value="Anytime (parallel):&#xa;ETL inbound S/4 update" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="880" width="200" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etl-marker" value="If order is modify-locked:&#xa;set etlUpdatedDuringModify=true" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="980" width="280" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ========== PHASE 3: SUBMIT CART ========== -->
+        <mxCell id="phase3-label" value="Phase 3 — Submit Cart" style="text;html=1;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;fontStyle=1;fontSize=12;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="980" width="1440" height="28" as="geometry" />
+        </mxCell>
+
+        <mxCell id="submit-req" value="API: Submit modify cart" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="680" y="990" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="owner-check" value="Lock owned by&#xa;submitting user/cart?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="690" y="1070" width="220" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="owner-reject" value="Reject&#xa;(wrong lock owner)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="1085" width="160" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etag-check-submit" value="Working ETag matches&#xa;current order ETag?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="680" y="1200" width="240" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etag-reject" value="Reject stale&#xa;(order changed in S/4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="1215" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etl-check-submit" value="etlUpdatedDuringModify&#xa;== true?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="690" y="1330" width="220" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etl-reject" value="Reject stale&#xa;(ETL updated during modify)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="1345" width="200" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="gen-diff" value="Compare cart vs order snapshot&#xa;Generate diff payload" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="660" y="1460" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="append-history" value="Append modification history record&#xa;modificationId, userId, cartId, diffPayload&#xa;etagAtSubmit, status=PENDING" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="620" y="1540" width="360" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="persist-order" value="Persist cart changes to order&#xa;Set status = MODIFICATION_IN_PROGRESS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="640" y="1640" width="320" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="publish-event" value="Publish async event&#xa;(modificationId)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="680" y="1730" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="accepted" value="Return 202 Accepted&#xa;(async in progress)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="680" y="1810" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ========== PHASE 4: ASYNC BUSINESS PROCESS ========== -->
+        <mxCell id="phase4-label" value="Phase 4 — Async Business Process (triggered by event)" style="text;html=1;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;fontStyle=1;fontSize=12;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1890" width="1440" height="28" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bp-start" value="BP starts&#xa;Load history by modificationId&#xa;(idempotent)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="640" y="1930" width="320" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="build-payload" value="Build S/4 modify payload&#xa;from immutable diff record" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="660" y="2020" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etl-check-bp" value="ETL updated after&#xa;diff creation?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="690" y="2100" width="220" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="stale-etl" value="Mark STALE_ETL_UPDATED&#xa;Release lock&#xa;Terminal order status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="2115" width="200" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etag-check-bp" value="etagAtSubmit matches&#xa;current order ETag?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="680" y="2230" width="240" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="stale-etag" value="Mark STALE_ETAG_MISMATCH&#xa;Release lock&#xa;Terminal order status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="2245" width="210" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="in-progress" value="Mark history IN_PROGRESS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="680" y="2360" width="240" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s4-modify" value="Call S/4 Modify API&#xa;If-Match: etagAtSubmit&#xa;Idempotency-Key: modificationId" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="640" y="2430" width="320" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s4-result" value="S/4 call&#xa;successful?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="700" y="2530" width="200" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s4-412" value="412 / stale response?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="2545" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="success-path" value="Persist new ETag from S/4&#xa;Mark history SUCCESS&#xa;Update order status from S/4&#xa;Release modify lock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="620" y="2670" width="360" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fail-path" value="Mark history FAILED&#xa;Order status = MODIFICATION_FAILED&#xa;Release lock (or retain for retry)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="2660" width="280" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="end-success" value="End — Success" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="700" y="2780" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend-box" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#999999;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="110" width="240" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="115" width="120" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-api" value="Commerce API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1295" y="140" width="110" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-s4" value="SAP S/4" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1415" y="140" width="90" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-bp" value="Async BP / Event" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1295" y="172" width="110" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-decision" value="Decision" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1415" y="168" width="90" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-error" value="Reject / Terminal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1295" y="212" width="110" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-ops" value="Cron / Admin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1415" y="212" width="90" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-ok" value="Success path" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1295" y="244" width="210" height="24" as="geometry" />
+        </mxCell>
+
+        <!-- ========== EDGES ========== -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="start" target="create-req"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="create-req" target="lock-check"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="lock-check" target="lock-reject"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="lock-check" target="s4-get"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="s4-get" target="persist-refresh"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="persist-refresh" target="create-cart"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="create-cart" target="set-lock"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="set-lock" target="return-cart"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="return-cart" target="modify-cart"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="modify-cart" target="submit-req"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e-ab1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="abandon-note" target="cron-scan"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-ab2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="cron-scan" target="cron-cleanup"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-ab3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="cron-cleanup" target="admin-cleanup"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e-etl1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="etl-note" target="etl-marker"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="submit-req" target="owner-check"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e12" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="owner-check" target="owner-reject"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="owner-check" target="etag-check-submit"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="etag-check-submit" target="etag-reject"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e15" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="etag-check-submit" target="etl-check-submit"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e16" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="etl-check-submit" target="etl-reject"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e17" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="etl-check-submit" target="gen-diff"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gen-diff" target="append-history"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="append-history" target="persist-order"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="persist-order" target="publish-event"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="publish-event" target="accepted"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="accepted" target="bp-start"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bp-start" target="build-payload"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="build-payload" target="etl-check-bp"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e25" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="etl-check-bp" target="stale-etl"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e26" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="etl-check-bp" target="etag-check-bp"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e27" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="etag-check-bp" target="stale-etag"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e28" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="etag-check-bp" target="in-progress"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="in-progress" target="s4-modify"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="s4-modify" target="s4-result"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e31" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="s4-result" target="success-path"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e32" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="s4-result" target="s4-412"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e33" value="412/stale" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="s4-412" target="stale-etag"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1110" y="2640" /><mxPoint x="1110" y="2280" /></Array></mxGeometry></mxCell>
+        <mxCell id="e34" value="Other error" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontStyle=1" edge="1" parent="1" source="s4-412" target="fail-path"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="success-path" target="end-success"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

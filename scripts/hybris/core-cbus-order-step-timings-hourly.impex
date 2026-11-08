@@ -1,0 +1,34 @@
+# ---------------------------------------------------------------------------
+# Register hourly ScriptingJob for core_cbus order step-timings CSV report.
+#
+# Prerequisites:
+#   1. Paste/upload the Groovy from core-cbus-order-step-timings-hourly.groovy
+#      into the Script content below (or keep contentURL / update via Backoffice).
+#   2. Properties are optional — Groovy hardcodes:
+#        order.timings.report.store=core_cbus
+#        order.timings.report.hoursBack=1
+#        order.timings.report.email.to=a@bayer.com,b@bayer.com   (comma/semicolon list)
+#        order.timings.report.email.from=donot-reply@channelarrow.com
+#        order.timings.report.s3.bucket=channel-us-order-step-timings
+#        order.timings.report.s3.region=us-east-1
+#        order.timings.report.s3.prefix=   (empty = bucket root)
+#      AWS keys from Vault via onedce.aws.path (d1: aws-np, p1: aws-prod).
+#   3. Ensure mailSender (or javaMailSender) is configured.
+#
+# Trigger cron: every hour at minute 5 (UTC / server TZ depending on node).
+# ---------------------------------------------------------------------------
+
+# Do NOT set Script.content here — Groovy body is maintained separately (avoids wiping it).
+INSERT_UPDATE Script; code[unique=true]; scriptType(code)
+; coreCbusOrderStepTimingsHourlyScript; GROOVY
+
+INSERT_UPDATE ScriptingJob; code[unique=true]; scriptURI; active
+; coreCbusOrderStepTimingsHourlyJob; model://coreCbusOrderStepTimingsHourlyScript; true
+
+INSERT_UPDATE CronJob; code[unique=true]; job(code); sessionUser(uid); sessionLanguage(isocode); sessionCurrency(isocode); singleExecutable; active; logToDatabase; logToFile; logLevelDatabase(code); logLevelFile(code)
+; coreCbusOrderStepTimingsHourlyCronJob; coreCbusOrderStepTimingsHourlyJob; admin; en; USD; false; true; true; false; INFO; INFO
+
+# Fire at :05 every hour
+INSERT_UPDATE Trigger; cronJob(code)[unique=true]; cronExpression; active
+; coreCbusOrderStepTimingsHourlyCronJob; 0 5 * * * ?; true
+

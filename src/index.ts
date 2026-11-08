@@ -16,6 +16,28 @@ import { HybrisClient, HybrisConfig } from './hybris-client.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'));
 
+// Load .env from project root (does not override existing env vars)
+function loadDotEnv(): void {
+  try {
+    const content = readFileSync(join(__dirname, '../.env'), 'utf-8');
+    for (const line of content.split('\n')) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const eq = trimmed.indexOf('=');
+      if (eq === -1) continue;
+      const key = trimmed.slice(0, eq).trim();
+      const value = trimmed.slice(eq + 1).trim();
+      if (key && process.env[key] === undefined) {
+        process.env[key] = value;
+      }
+    }
+  } catch {
+    // .env is optional
+  }
+}
+
+loadDotEnv();
+
 // Input validation helpers
 function validateString(
   args: Record<string, unknown> | undefined,
@@ -95,7 +117,8 @@ function getConfig(): HybrisConfig {
     baseSiteId: process.env.HYBRIS_BASE_SITE_ID || 'electronics',
     catalogId: process.env.HYBRIS_CATALOG_ID || 'electronicsProductCatalog',
     catalogVersion: process.env.HYBRIS_CATALOG_VERSION || 'Online',
-    hacPath: process.env.HYBRIS_HAC_PATH || '/hac',
+    hacPath: process.env.HYBRIS_HAC_PATH !== undefined ? process.env.HYBRIS_HAC_PATH : '/hac',
+    occPath: process.env.HYBRIS_OCC_PATH || '/rest/v2',
   };
 }
 

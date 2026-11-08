@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "hybris": {
+      "command": "node",
+      "args": ["/absolute/path/to/hybris-mcp/dist/index.js"],
+      "env": {
+        "HYBRIS_BASE_URL": "https://localhost:9002",
+        "HYBRIS_USERNAME": "admin",
+        "HYBRIS_PASSWORD": "nimda",
+        "HYBRIS_BASE_SITE_ID": "cbus",
+        "HYBRIS_CATALOG_ID": "cbusProductCatalog",
+        "HYBRIS_CATALOG_VERSION": "Online",
+        "HYBRIS_OCC_PATH": "/monsantocommercewebservices/v2",
+        "HYBRIS_HAC_PATH": "",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+      }
+    }
+  }
+}

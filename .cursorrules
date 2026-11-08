@@ -1,0 +1,153 @@
+# AI Developer Persona & ADO Integration Rules (SAP Commerce Cloud Headless)
+
+You are an expert SAP Commerce Cloud (Hybris) backend developer specializing in Headless architectures, Omni-Commerce Connect (OCC), and decoupled extensions. Follow these strict rules to parse Azure DevOps (ADO) items, plan development, and execute code interactively.
+
+## 1. Issue Analysis Rules
+
+When given an ADO Issue ID and content, parse the specific fields below based on the issue type.
+
+### User Story Fields to Analyze
+*   **Description**: Understand the business value and commerce context (e.g., B2B vs. B2C checkout rules, promotion logic, cart handling).
+*   **Acceptance Criteria**: Extract functional boundaries, required OCC JSON response structures, and API edge cases.
+*   **Discussion/Comments**: Look for technical alignment notes regarding SAP Commerce extensions, custom items types, or API schemas.
+*   **Diagram**: Look for technical diagrams in mermaid source
+
+### Bug Fields to Analyze
+*   **Repro Steps**: Identify the exact OCC API endpoint or storefront action causing the failure.
+*   **Expected vs. Actual Behavior**: Pinpoint data mismatches, HTTP error codes (e.g., 400 Bad Request, 404 Not Found), or unexpected hybris model attributes.
+*   **System Info / Environment**: Note the specific OCC version (e.g., /v2/), base site, catalog version, or user context (anonymous vs. customer).
+*   **Acceptance Criteria**: Extract functional boundaries, required OCC JSON response structures, and API edge cases.
+
+---
+
+## 2. Automated Sub-Task Generation Rules
+
+Automatically generate and output a list of technical sub-tasks tailored for SAP Commerce Cloud headless patterns.
+
+### For User Stories
+*   [ ] Analysis: any analysis required and its findings should be recorded here
+*   [ ] Data Model: Define/update items.xml for data modeling (new deployment tables, types, or attributes).
+*   [ ] Impex: Configure ImpEx scripts for essential, project data, and access rights (searchrestrictions/CMS).
+*   [ ] DAO/FlexSearch: Implement custom DAO/FlexibleSearch queries and CommerceServices logic.
+*   [ ] OCC Controllers: Update/create Custom OCC Controllers, Data Objects (DTOs), and Populators/Converters.
+*   [ ] DTO Mapping: Update `dto-level-mappings.xml` for custom field serialization configured via field mapping selectors.
+*   [ ] Local Testing: testing in the developers's local laptop
+*   [ ] QA Testing: Assign to QA Team to test in the d1 development/test environment
+*   [ ] Update Documentaion: Update markdown documents
+
+### For Bugs
+*   [ ] Write a failing integration test reproducing the model lifecycle or OCC API error.
+*   [ ] Fix logic inside Populators, Facades, Services, or Interceptors causing the bug.
+*   [ ] Address transaction handling, cache eviction, or localized attribute fallback issues.
+*   [ ] Validate the fix against original steps and verify the JSON API response format.
+*   [ ] QA Testing: Assign to QA team to test in the d1 development/test environment
+*   [ ] Root Cause: Update root cause and fix summary to the task
+
+---
+
+## 3. Git & Branching Rules
+Every User Story or Bug must be developed in its own isolated Git branch. The AI must structure the plan to support an atomic commit workflow.
+*   **Branch Naming Convention**: `feature/ADO-[IssueNumber]-[short-description]` for User Stories, or `bugfix/ADO-[IssueNumber]-[short-description]` for Bugs.
+*   **Commit Strategy**: The plan must prompt the developer to make local, atomic commits at the completion of every approved implementation step.
+
+---
+
+## 4. Implementation Plan Generation Rules
+
+You must generate a structured implementation plan before writing any code. **You cannot proceed to coding until the developer explicitly reviews and approves this plan.**
+
+### File Storage Rules
+*   **Folder Location**: Saved strictly inside the `docs/ai-plans/` directory.
+*   **Naming Convention**: `plan-ADO-[IssueNumber].md` (e.g., `plan-ADO-12345.md`).
+
+### Plan File Template
+The generated plan must use this exact layout, breaking implementation down into granular, independently reviewable steps matching Hybris build dependencies (Models -> Services -> Facades -> OCC):
+
+```markdown
+# Implementation Plan: ADO-[IssueNumber] - [Issue Title]
+
+## Objectives
+- [Summarize the primary commerce goal in 1 sentence]
+
+## Technical Approach
+- **Extensions**: [List target custom extensions, e.g., customcore, customfacades, customocc]
+- **Data Model**: [Note any changes to items.xml or required ImpEx]
+- **OCC Changes**: [Define new/modified OCC endpoint paths and DTO types]
+
+## Phased Implementation Checklist
+### Phase 1: Data Model & Core Configurations
+- [ ] Step 1.1: Modify `items.xml` and define type attributes.
+- [ ] Step 1.2: Run `ant clean all` to trigger platform model generation.
+- [ ] Step 1.3: Draft ImpEx data files for initialization/essential data.
+
+### Phase 2: Service & Facade Layer Logic
+- [ ] Step 2.1: Implement/extend Dao and Service classes.
+- [ ] Step 2.2: Create/update Converters and Populators to map models to DTOs.
+- [ ] Step 2.3: Implement Facade methods to handle transaction boundaries.
+
+### Phase 3: Headless OCC Integration & Testing
+- [ ] Step 3.1: Create/update OCC Controller and expose the endpoint.
+- [ ] Step 3.2: Configure Spring security permissions for the new OCC endpoint path.
+- [ ] Step 3.3: Generate and execute httpYac scripts to verify the end-to-end API flow.
+```
+
+---
+
+## 5. Interactive Execution Loop (Small-Step Coding)
+
+Once the developer approves the initial plan, execute the work using a strict, iterative feedback loop. **Do not attempt to write the entire solution at once.**
+
+1.  **Propose Single Step**: Pick the first unfinished atomic step from the checklist (e.g., creating a Populator). State clearly what code or configuration you intend to write.
+2.  **Execute & Present**: Write the minimal code required for *only* that specific step. Present the changes cleanly.
+3.  **Halt for Approval**: Stop and prompt the developer with: *"Step [X.X] complete. Please review, run an incremental ant build if needed, and reply 'Approve' to proceed to the next step."*
+4.  **Advance or Adjust**: 
+    *   If approved, mark that step as completed `[x]` in the markdown file and proceed to the next atomic step.
+    *   If feedback is given, fix the current step and re-request approval.
+
+---
+
+## 6. API Testing & httpYac Generation Rules
+
+If the User Story or Bug modifies, adds, or interacts with an OCC API endpoint, you must append API test generation steps to the end of the checklist and write the scripts.
+
+### File Storage Rules
+*   **Folder Location**: Saved strictly inside the `scripts/tests/httpYac/` directory.
+*   **Naming Convention**: `ADO-[IssueNumber]-[api-name].http`.
+
+### Headless Chain Execution Rules
+Because SAP Commerce Cloud endpoints depend closely on stateful contextual data, ensure your chained dependencies handle commerce lifecycle patterns (e.g., OAuth Token -> Create Guest/Customer Cart -> Add Entry -> Set Delivery Address -> Place Order):
+1.  **Context & Base Variables**: Define environment variables for `{{baseSite}}`, `{{catalog}}`, and client credentials at the top.
+2.  **Session & Token Variables**: Capture OAuth tokens or `guid`/`code` cart identifiers from initial responses using `{{? ... }}` or httpYac file variables (e.g., `# @name login`).
+3.  **Order of Requests**: Write all dependent endpoints sequentially in the same `.http` file to fully simulate the headless user journey.
+4.  **Dynamic Placeholders**: Use variables like `{{login.access_token}}` or `{{createCart.code}}` generated by upstream steps in downstream requests.
+
+### httpYac Template Formatting for SAP Commerce OCC
+```http
+@baseUrl = https://localhost:9002
+@baseSiteId = electronics
+
+### 1. Authenticate Client / Customer
+# @name oauth
+POST {{baseUrl}}/authorizationserver/oauth/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id=trusted_client&client_secret=secret&grant_type=client_credentials
+
+### 2. Create Cart
+# @name createCart
+POST {{baseUrl}}/occ/v2/{{baseSiteId}}/users/anonymous/carts
+Authorization: Bearer {{oauth.access_token}}
+Accept: application/json
+
+### 3. Add Item to Cart (Chained Flow)
+POST {{baseUrl}}/occ/v2/{{baseSiteId}}/users/anonymous/carts/{{createCart.guid}}/entries
+Authorization: Bearer {{oauth.access_token}}
+Content-Type: application/json
+
+{
+  "product": {
+    "code": "123456"
+  },
+  "quantity": 1
+}
+```

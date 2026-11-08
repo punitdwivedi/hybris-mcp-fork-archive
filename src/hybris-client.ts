@@ -10,6 +10,7 @@ export interface HybrisConfig {
   catalogId?: string;
   catalogVersion?: string;
   hacPath?: string; // HAC path prefix, defaults to '/hac'
+  occPath?: string; // OCC REST API path prefix, defaults to '/rest/v2'
 }
 
 export interface ProductSearchResult {
@@ -106,12 +107,19 @@ export class HybrisClient {
       catalogId: 'electronicsProductCatalog',
       catalogVersion: 'Online',
       hacPath: '/hac',
+      occPath: '/rest/v2',
       ...config,
     };
   }
 
   private get hacPrefix(): string {
-    return this.config.hacPath || '/hac';
+    return this.config.hacPath !== undefined ? this.config.hacPath : '/hac';
+  }
+
+  private get occPrefix(): string {
+    const path = this.config.occPath || '/rest/v2';
+    const normalized = path.startsWith('/') ? path : `/${path}`;
+    return normalized.replace(/\/$/, '');
   }
 
   private async fetchWithTimeout(url: string, options: RequestInit = {}): Promise<Response> {
@@ -411,38 +419,38 @@ export class HybrisClient {
     });
 
     return this.request<ProductSearchResult>(
-      `/rest/v2/${encodeURIComponent(this.config.baseSiteId!)}/products/search?${params}`
+      `${this.occPrefix}/${encodeURIComponent(this.config.baseSiteId!)}/products/search?${params}`
     );
   }
 
   async getProduct(productCode: string): Promise<Product> {
     return this.request<Product>(
-      `/rest/v2/${encodeURIComponent(this.config.baseSiteId!)}/products/${encodeURIComponent(productCode)}?fields=FULL`
+      `${this.occPrefix}/${encodeURIComponent(this.config.baseSiteId!)}/products/${encodeURIComponent(productCode)}?fields=FULL`
     );
   }
 
   async getCategories(): Promise<Category[]> {
     const result = await this.request<{ subcategories: Category[] }>(
-      `/rest/v2/${encodeURIComponent(this.config.baseSiteId!)}/catalogs/${encodeURIComponent(this.config.catalogId!)}/${encodeURIComponent(this.config.catalogVersion!)}/categories`
+      `${this.occPrefix}/${encodeURIComponent(this.config.baseSiteId!)}/catalogs/${encodeURIComponent(this.config.catalogId!)}/${encodeURIComponent(this.config.catalogVersion!)}/categories`
     );
     return result.subcategories || [];
   }
 
   async getCategory(categoryCode: string): Promise<Category> {
     return this.request<Category>(
-      `/rest/v2/${encodeURIComponent(this.config.baseSiteId!)}/catalogs/${encodeURIComponent(this.config.catalogId!)}/${encodeURIComponent(this.config.catalogVersion!)}/categories/${encodeURIComponent(categoryCode)}`
+      `${this.occPrefix}/${encodeURIComponent(this.config.baseSiteId!)}/catalogs/${encodeURIComponent(this.config.catalogId!)}/${encodeURIComponent(this.config.catalogVersion!)}/categories/${encodeURIComponent(categoryCode)}`
     );
   }
 
   async getOrders(userId: string): Promise<{ orders: Order[] }> {
     return this.request<{ orders: Order[] }>(
-      `/rest/v2/${encodeURIComponent(this.config.baseSiteId!)}/users/${encodeURIComponent(userId)}/orders?fields=FULL`
+      `${this.occPrefix}/${encodeURIComponent(this.config.baseSiteId!)}/users/${encodeURIComponent(userId)}/orders?fields=FULL`
     );
   }
 
   async getOrder(userId: string, orderCode: string): Promise<Order> {
     return this.request<Order>(
-      `/rest/v2/${encodeURIComponent(this.config.baseSiteId!)}/users/${encodeURIComponent(userId)}/orders/${encodeURIComponent(orderCode)}?fields=FULL`
+      `${this.occPrefix}/${encodeURIComponent(this.config.baseSiteId!)}/users/${encodeURIComponent(userId)}/orders/${encodeURIComponent(orderCode)}?fields=FULL`
     );
   }
 
@@ -496,73 +504,71 @@ export class HybrisClient {
   }
 
   async importImpex(impexContent: string): Promise<ImpexResult> {
-    // Use Groovy script for ImpEx import with ImportService
-    const escapedContent = this.escapeGroovyString(impexContent);
+    // Base64-embed ImpEx — triple-quote / escaped string embedding often returns empty and does not persist.
+    const b64 = Buffer.from(impexContent, 'utf8').toString('base64');
 
     const script = `
-import de.hybris.platform.servicelayer.impex.ImportService
-import de.hybris.platform.servicelayer.impex.ImportConfig
-import de.hybris.platform.servicelayer.impex.impl.StreamBasedImpExResource
-
 try {
-    def impexContent = "${escapedContent}"
+    def impexBytes = java.util.Base64.getDecoder().decode("${b64}")
     def importService = spring.getBean("importService")
-
-    def config = new ImportConfig()
-    def resource = new StreamBasedImpExResource(
-        new ByteArrayInputStream(impexContent.getBytes("UTF-8")),
+    def mediaService = spring.getBean("mediaService")
+    def config = new de.hybris.platform.servicelayer.impex.ImportConfig()
+    def resource = new de.hybris.platform.servicelayer.impex.impl.StreamBasedImpExResource(
+        new ByteArrayInputStream(impexBytes),
         "UTF-8"
     )
     config.setScript(resource)
+    config.setSynchronous(true)
+    config.setMaxThreads(1)
     config.setEnableCodeExecution(true)
-
     def importResult = importService.importData(config)
-
-    if (importResult.hasUnresolvedLines()) {
-        println "WARNING: Import completed with unresolved lines"
-        importResult.unresolvedLines.allLines.each { line ->
-            println "  Unresolved: " + line
+    def out = new StringBuilder()
+    out.append("error=").append(importResult.isError()).append("\\n")
+    try {
+      if (importResult.hasUnresolvedLines()) {
+        def unresolved = importResult.getUnresolvedLines()
+        if (unresolved != null) {
+          def text = new String(mediaService.getDataFromMedia(unresolved), "UTF-8")
+          out.append("UNRESOLVED:\\n").append(text.take(800)).append("\\n")
         }
-    }
-
+      }
+    } catch (e) {}
     if (importResult.isError()) {
-        println "ERROR: Import failed"
-        if (importResult.unresolvedLines?.allLines) {
-            importResult.unresolvedLines.allLines.each { line ->
-                println "  Error: " + line
-            }
-        }
-        return "ERROR"
+      println "ERROR: Import failed"
+      println out.toString()
+      return "ERROR:" + out.toString().take(400)
     }
-
     println "SUCCESS: ImpEx import completed"
-    return "SUCCESS"
+    return "SUCCESS:" + out.toString().take(200)
 } catch (Exception e) {
     println "ERROR: " + e.getMessage()
     e.printStackTrace()
     return "ERROR: " + e.getMessage()
 }
 `;
-    const result = await this.executeGroovyScript(script, true); // commit=true for imports
+    const result = await this.executeGroovyScript(script, true);
     const output = result.output || '';
     const execResult = String(result.result || '');
-    const success = output.includes('SUCCESS:') || execResult === 'SUCCESS';
+    const success =
+      execResult.startsWith('SUCCESS') ||
+      output.includes('SUCCESS:') ||
+      (execResult.includes('error=false') && !execResult.startsWith('ERROR'));
     const errors: string[] = [];
 
-    // Extract unresolved lines as errors
-    const unresolvedMatch = output.match(/Unresolved: (.+)/g);
+    const unresolvedMatch = (output + '\n' + execResult).match(/Unresolved: (.+)/g);
     if (unresolvedMatch) {
       errors.push(...unresolvedMatch);
     }
-
-    const errorMatch = output.match(/ERROR: (.+)/);
-    if (errorMatch) {
-      errors.push(errorMatch[1]);
+    if (execResult.startsWith('ERROR') || output.includes('ERROR:')) {
+      errors.push(execResult || output);
+    }
+    if (!execResult && !output) {
+      errors.push('empty groovy result — ImpEx may not have persisted');
     }
 
     return {
       success,
-      message: output || execResult,
+      message: output || execResult || 'empty result',
       errors: errors.length > 0 ? errors : undefined,
     };
   }
