@@ -1,7 +1,7 @@
 {
   "name": "hybris-mcp",
-  "version": "1.0.0",
-  "description": "MCP server for SAP Commerce Cloud (Hybris) integration",
+  "version": "1.1.0",
+  "description": "MCP server for SAP Commerce Cloud (Hybris) — FlexibleSearch, ImpEx, Groovy, cron jobs, and OCC for AI assistants",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
@@ -16,10 +16,20 @@
     "mcp",
     "hybris",
     "sap",
-    "commerce-cloud"
+    "commerce-cloud",
+    "cursor",
+    "ccv2"
   ],
-  "author": "",
+  "author": "Punit Kumar <https://github.com/punitdwivedi>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/punitdwivedi/hybris-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/punitdwivedi/hybris-mcp/issues"
+  },
+  "homepage": "https://github.com/punitdwivedi/hybris-mcp#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
   },

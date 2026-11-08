@@ -1,6 +1,8 @@
 # Hybris MCP Server
 
-MCP (Model Context Protocol) server for SAP Commerce Cloud (Hybris) integration. This server allows AI assistants like Claude to interact with your Hybris instance.
+MCP (Model Context Protocol) server for SAP Commerce Cloud (Hybris) integration. Lets AI assistants (Cursor, Claude, and others) talk to your Commerce instance via HAC and OCC.
+
+**Maintained by [Punit Kumar](https://github.com/punitdwivedi)** · based on the original work by [Dawid Michałowicz](https://github.com/Emenowicz)
 
 ## Features
 
@@ -14,10 +16,16 @@ MCP (Model Context Protocol) server for SAP Commerce Cloud (Hybris) integration.
 - **Catalog Sync**: Trigger catalog synchronization
 - **Health Checks**: Monitor system health
 
+### Extras in this fork
+
+- Hourly **core_cbus order step-timings** report (Groovy + CronJob ImpEx + S3/email) — see [`docs/core-cbus-order-step-timings-hourly.md`](docs/core-cbus-order-step-timings-hourly.md)
+- Helper Node scripts under `scripts/` for exports and maintenance (credentials via env / local MCP config)
+- Project docs and diagrams under `docs/`
+
 ## Installation
 
 ```bash
-git clone https://github.com/Emenowicz/hybris-mcp.git
+git clone https://github.com/punitdwivedi/hybris-mcp.git
 cd hybris-mcp
 npm install
 npm run build
@@ -445,6 +453,10 @@ The server handles CSRF tokens automatically. If you see CSRF errors:
 2. Verify the HAC path is correct
 3. Try restarting the MCP server to get a fresh session
 
+## Credits
+
+Original MCP server by [Dawid Michałowicz / Emenowicz](https://github.com/Emenowicz/hybris-mcp). This repository is a maintained fork with additional operational tooling and documentation.
+
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE). Copyright © 2025 Dawid Michałowicz; additional contributions © 2026 Punit Kumar.
